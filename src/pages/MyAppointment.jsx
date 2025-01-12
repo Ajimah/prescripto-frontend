@@ -86,29 +86,7 @@ const MyAppointment = () => {
       }
     }
 
-
-
- // const appointmentPayStack = async (appointmentId) => {
-    //   try {
-    //     const {data} = await axios.post(backendURL + '/api/user/payment-paystack', {appointmentId}, {headers:{token}})
-    //     if (data.success){
-    //       console.log(data.order)
-    //     }
-
-
-    //   } catch (error) {
-    //     console.error(error)
-    //     toast.error(error.response.data.message)
-        
-    //   }
-    // }
-
-
-   
-
-
     
-
 
     useEffect(() => {
       if(token){
