@@ -2,6 +2,9 @@ import  { useContext,useState ,useEffect} from 'react'
 import { AppContext } from './../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import Paystack from '@paystack/inline-js';
+
+
 
 const MyAppointment = () => {
 
@@ -22,7 +25,7 @@ const MyAppointment = () => {
         const {data} = await axios.get(backendURL + '/api/user/appointments', {headers:{token}})
         if(data.success) {
           setAppointments(data.appointments.reverse());
-          console.log(data.appointments)
+         
         }
       } catch (error) {
          console.error(error)
@@ -47,6 +50,65 @@ const MyAppointment = () => {
         toast.error(error.response.data.message)
       }
     }
+
+    
+    
+    const makePayment = async (appointmentId) => {
+
+      const popup = new Paystack()
+
+      try  {
+
+        //create a get api that will return selected user details based on id that was passed
+
+        popup.newTransaction({
+          key: 'pk_test_80fc943a09148f0f82a8f43e183d53d6f955c47b',
+          email: 'sample@email.com',
+          amount: 23400,
+          onSuccess: (transaction) => {
+            console.log(transaction)
+          },
+          onLoad: (response) => {
+            console.log("onLoad: ", response);
+          },
+          onCancel: () => {
+            console.log("onCancel");
+          },
+          onError: (error) => {
+            console.log("Error: ", error.message);
+          }
+        })
+
+        
+      }catch (error) {
+        console.error(error)
+        toast.error(error.response.data.message)
+      }
+    }
+
+
+
+ // const appointmentPayStack = async (appointmentId) => {
+    //   try {
+    //     const {data} = await axios.post(backendURL + '/api/user/payment-paystack', {appointmentId}, {headers:{token}})
+    //     if (data.success){
+    //       console.log(data.order)
+    //     }
+
+
+    //   } catch (error) {
+    //     console.error(error)
+    //     toast.error(error.response.data.message)
+        
+    //   }
+    // }
+
+
+   
+
+
+    
+
 
     useEffect(() => {
       if(token){
@@ -76,7 +138,7 @@ const MyAppointment = () => {
 
                 </div>
                 <div className='flex flex-col gap-2 justify-end '>
-                {!item.cancelled && <button className=' text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button>}
+                {!item.cancelled && <button onClick={() => makePayment(item._id)} className=' text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button>}
                  {!item.cancelled && <button onClick={() => cancelAppointment(item._id)} className=' text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel appointment</button> } 
                  {item.cancelled && <button className='text-sm text-red-500 text-center sm:min-w-48 py-2 border rounded'> Appointment Cancelled</button>}
                 </div>
