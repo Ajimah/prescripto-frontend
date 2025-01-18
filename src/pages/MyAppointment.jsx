@@ -6,8 +6,11 @@ import Paystack from '@paystack/inline-js';
 
 
 
+
+
 const MyAppointment = () => {
 
+  
     const {backendURL, token, getDoctorsData } = useContext(AppContext)
 
     const [appointments, setAppointments] = useState([])
@@ -22,21 +25,26 @@ const MyAppointment = () => {
     const getUserAppointments = async () => {
 
       try {
-        const {data} = await axios.get(backendURL + '/api/user/appointments', {headers:{token}})
+        const {data} = await axios.get(backendURL+'/api/user/appointments',{headers:{token}})
         if(data.success) {
           setAppointments(data.appointments.reverse());
          
         }
       } catch (error) {
          console.error(error)
-        toast.error(error.response.data.message)
+        toast.error(error.message)
       }
     };
 
+    useEffect(() => {
+      if(token){
+        getUserAppointments()
+      }
+    },[token]);
 
     const cancelAppointment = async (appointmentId) => {
       try {
-        console.log(appointmentId)
+       
         const {data} = await axios.post(backendURL + '/api/user/cancel-appointment', {appointmentId},{headers:{token}})
         if(data.success){
           toast.success(data.message)
@@ -52,47 +60,59 @@ const MyAppointment = () => {
     }
 
     
-    
-    const makePayment = async (appointmentId) => {
+   
 
+
+    const makePayment = async (docId) => {
+      //universal is a variable used to access response from the user retrieve api and make it accessible to every part of the function.
+      let universal = {}
+      try{
+        console.log("Initiating payment for doctor:", docId);
+        
+        const response = await axios.get(backendURL + '/api/user/retrieve-doctor/' + docId , {headers:{token}})
+        // to make response globally accessible within this function
+         universal = response
+        // console.log(response.data.data)
+        
+        // const { success, data: doctor } = response.data
+        if (response) {
+          console.log("yes")
+        }
+      }catch (error){
+        console.error(error)
+        toast.error(error.message)
+      }
+      //create a get api that will return selected user details based on id that was passed
+      
       const popup = new Paystack()
-
-      try  {
-
-        //create a get api that will return selected user details based on id that was passed
-
+      
+        try  {
         popup.newTransaction({
           key: 'pk_test_80fc943a09148f0f82a8f43e183d53d6f955c47b',
-          email: 'sample@email.com',
-          amount: 23400,
+          email: universal.data.data[1].userEmail,
+          amount: universal.data.data[0].doc.fees,
+          userName: universal.data.data[2].userName,
           onSuccess: (transaction) => {
+            console.log("paid")
             console.log(transaction)
           },
           onLoad: (response) => {
-            console.log("onLoad: ", response);
+            //  console.log("onLoad: ", response);
           },
           onCancel: () => {
             console.log("onCancel");
           },
           onError: (error) => {
-            console.log("Error: ", error.message);
+            console.log("Error: ", error.message)
           }
         })
-
-        
       }catch (error) {
         console.error(error)
-        toast.error(error.response.data.message)
+        toast.error(error.message)
       }
     }
 
     
-
-    useEffect(() => {
-      if(token){
-        getUserAppointments()
-      }
-    },[token])
 
   return (
     <div>
@@ -116,7 +136,7 @@ const MyAppointment = () => {
 
                 </div>
                 <div className='flex flex-col gap-2 justify-end '>
-                {!item.cancelled && <button onClick={() => makePayment(item._id)} className=' text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button>}
+                {!item.cancelled && <button onClick={() => makePayment(item.docId)} className=' text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button>}
                  {!item.cancelled && <button onClick={() => cancelAppointment(item._id)} className=' text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel appointment</button> } 
                  {item.cancelled && <button className='text-sm text-red-500 text-center sm:min-w-48 py-2 border rounded'> Appointment Cancelled</button>}
                 </div>
