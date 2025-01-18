@@ -93,11 +93,13 @@ const MyAppointment = () => {
           amount: universal.data.data[0].doc.fees,
           userName: universal.data.data[2].userName,
           onSuccess: (transaction) => {
-            console.log("paid")
             console.log(transaction)
+            const response = axios.post(backendURL + '/api/user/successfulPayment/',transaction)
+            console.log("Response from frontend:", response.data);
+            toast.success("Payment recorded successfully!");
           },
           onLoad: (response) => {
-            //  console.log("onLoad: ", response);
+             console.log("onLoad: ", response);
           },
           onCancel: () => {
             console.log("onCancel");
